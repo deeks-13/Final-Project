@@ -105,6 +105,49 @@ class FeatureSelector(BaseEstimator, TransformerMixin):
         return X[self.features_to_keep]
 
 
+class DataFrameImputer(BaseEstimator, TransformerMixin):
+    """
+    Cleaning Step — Drop-in replacement for SimpleImputer that preserves
+    DataFrame column names all the way through the pipeline.
+    SimpleImputer converts output to a numpy array, which strips column names
+    and causes SHAP plots to show 'feature_0', 'feature_1' etc. instead of
+    real names like 'int_rate', 'dti', 'fico_mid'.
+
+    Strategy options: 'median' (default), 'mean', 'most_frequent', 'constant'
+    For numeric columns uses the chosen strategy.
+    For object/categorical columns always uses 'most_frequent'.
+    """
+    def __init__(self, strategy='median'):
+        self.strategy = strategy
+
+    def fit(self, X, y=None):
+        if not isinstance(X, pd.DataFrame):
+            X = pd.DataFrame(X)
+        self.fill_values_ = {}
+        for col in X.columns:
+            if X[col].dtype == object:
+                self.fill_values_[col] = X[col].mode()[0] if not X[col].mode().empty else 'missing'
+            else:
+                if self.strategy == 'median':
+                    self.fill_values_[col] = X[col].median()
+                elif self.strategy == 'mean':
+                    self.fill_values_[col] = X[col].mean()
+                elif self.strategy == 'most_frequent':
+                    self.fill_values_[col] = X[col].mode()[0] if not X[col].mode().empty else 0
+                else:
+                    self.fill_values_[col] = 0
+        return self
+
+    def transform(self, X):
+        if not isinstance(X, pd.DataFrame):
+            X = pd.DataFrame(X)
+        X = X.copy()
+        for col in X.columns:
+            if col in self.fill_values_:
+                X[col] = X[col].fillna(self.fill_values_[col])
+        return X  # Returns a DataFrame — column names are preserved!
+
+
 class RecodeCategoricals(BaseEstimator, TransformerMixin):
     """
     Cleaning Steps 1 & 2:
