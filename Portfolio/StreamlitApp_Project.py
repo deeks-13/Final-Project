@@ -174,7 +174,14 @@ with st.form("pred_form"):
    
     submitted = st.form_submit_button("Run Prediction")
 
-original = dataset.iloc[0:1].to_dict()
+FEATURE_COLS = [
+    'loan_amnt', 'term', 'int_rate', 'installment', 'grade',
+    'emp_length', 'home_ownership', 'annual_inc', 'verification_status',
+    'purpose', 'dti', 'delinq_2yrs', 'earliest_cr_line',
+    'fico_range_low', 'fico_range_high', 'inq_last_6mths',
+    'open_acc', 'pub_rec', 'revol_bal', 'revol_util', 'total_acc'
+]
+original = dataset[FEATURE_COLS].iloc[0:1].to_dict()
 original.update(user_inputs)
 if submitted:
 
