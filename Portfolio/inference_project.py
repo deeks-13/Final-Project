@@ -13,12 +13,7 @@ model_dir = os.environ.get('SM_MODEL_DIR')
 if model_dir not in sys.path:
     sys.path.append(model_dir)
 
-from src.Custom_Classes import (
-    RecodeCategoricals, ParseCreditDate, EncodeGrade,
-    OneHotEncodeCats, LoanFeatureEngineer,
-    AutoPowerTransformer, FeatureSelector
-)
-
+from src.Custom_Classes import FeatureEngineer
 
 def model_fn(model_dir):
     """Load the model from the specified directory."""
